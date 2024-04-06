@@ -2,3 +2,4 @@ go.mod
 .null-ls*
 troubleShoot.txt
 log.txt
+webApp/tmp/
