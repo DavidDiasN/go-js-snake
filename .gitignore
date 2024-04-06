@@ -1,4 +1,5 @@
 go.mod
+go.sum
 .null-ls*
 troubleShoot.txt
 log.txt

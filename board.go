@@ -19,12 +19,9 @@ const (
 )
 
 var (
-	keyVectorMap           = map[rune][2]int{'w': {-1, 0}, 'd': {0, 1}, 's': {1, 0}, 'a': {0, -1}}
-	keyReversalMap         = map[rune]rune{'w': 's', 's': 'w', 'd': 'a', 'a': 'd'}
-	keyGrowthOptionMap     = map[rune][3]rune{'w': {'s', 'a', 'd'}, 'd': {'a', 's', 'w'}, 's': {'w', 'a', 'd'}, 'a': {'d', 's', 'w'}}
-	grewThisFrame      int = 0
-	UserRune           rune
-	currentFrame       []byte
+	keyVectorMap             = map[rune][2]int{'w': {-1, 0}, 'd': {0, 1}, 's': {1, 0}, 'a': {0, -1}}
+	keyReversalMap           = map[rune]rune{'w': 's', 's': 'w', 'd': 'a', 'a': 'd'}
+	keyGrowthOptionMap       = map[rune][3]rune{'w': {'s', 'a', 'd'}, 'd': {'a', 's', 'w'}, 's': {'w', 'a', 'd'}, 'a': {'d', 's', 'w'}}
 	IllegalMoveError   error = errors.New("Illegal move entered")
 	InvalidMoveError   error = errors.New("Invalid key pressed")
 	HitBounds          error = errors.New("Hit bounds")
@@ -43,6 +40,9 @@ type Board struct {
 	lastInputMove     rune
 	lastProcessedMove rune
 	food              [2]int
+	grewThisFrame     int
+	userRune          rune
+	currentFrame      []byte
 }
 
 func NewGame(rows, cols int, conn net.Conn) *Board {
@@ -51,7 +51,7 @@ func NewGame(rows, cols int, conn net.Conn) *Board {
 
 	startingFood := [2]int{0, 5}
 
-	return &Board{rows, cols, startingSnake, sync.Mutex{}, 'w', 'w', startingFood}
+	return &Board{rows, cols, startingSnake, sync.Mutex{}, 'w', 'w', startingFood, 0, '-', []byte("")}
 }
 
 func (b *Board) MoveListener(quit chan bool) error {
@@ -60,7 +60,7 @@ func (b *Board) MoveListener(quit chan bool) error {
 		case <-quit:
 			return GameQuit
 		default:
-			char := ReadUserInput()
+			char := b.ReadUserInput()
 			if validMove(char) {
 				b.mu.Lock()
 				b.movement(char)
@@ -79,7 +79,7 @@ func (b *Board) MoveListener(quit chan bool) error {
 }
 
 func (b *Board) FrameSender(quit chan bool) error {
-	grewThisFrame = snakeIncrement
+	b.grewThisFrame = snakeIncrement
 	for {
 		select {
 		case <-quit:
@@ -99,14 +99,14 @@ func (b *Board) FrameSender(quit chan bool) error {
 
 			buffer := new(bytes.Buffer)
 			encoder := json.NewEncoder(buffer)
-			if grewThisFrame != 0 {
+			if b.grewThisFrame != 0 {
 				newPieces := [][2]int{}
-				for i := len(b.snakeState) - grewThisFrame; i < len(b.snakeState); i++ {
+				for i := len(b.snakeState) - b.grewThisFrame; i < len(b.snakeState); i++ {
 					newPieces = append(newPieces, b.snakeState[i])
 				}
 				newPieces = append([][2]int{b.food, b.snakeState[0]}, newPieces...)
 				err = encoder.Encode(newPieces)
-				grewThisFrame = 0
+				b.grewThisFrame = 0
 			} else {
 				err = encoder.Encode([][2]int{b.snakeState[0]})
 			}
@@ -115,7 +115,7 @@ func (b *Board) FrameSender(quit chan bool) error {
 				continue
 			}
 
-			frameUpdateWriter(buffer.Bytes())
+			b.frameUpdateWriter(buffer.Bytes())
 
 			b.mu.Unlock()
 			time.Sleep(150 * time.Millisecond)
@@ -147,35 +147,35 @@ func (b *Board) updateSnake() error {
 	} else if err == HitBounds || err == SnakeCollision {
 		//fmt.Println("You Died")
 
-		frameUpdateWriter([]byte("You Died"))
+		b.frameUpdateWriter([]byte("You Died"))
 		return err
 	}
 
 	if PosEqual(b.snakeState[0], b.food) {
 		err = b.growSnake(snakeIncrement)
 		if err != nil && len(b.snakeState) > 620 {
-			frameUpdateWriter([]byte("You Won!"))
+			b.frameUpdateWriter([]byte("You Won!"))
 			return GameVictory
 		}
 		if err != nil {
 			//fmt.Println("You Died")
-			frameUpdateWriter([]byte("You Died"))
+			b.frameUpdateWriter([]byte("You Died"))
 			return err
 		}
-		grewThisFrame += snakeIncrement
+		b.grewThisFrame += snakeIncrement
 		landOnSnake := true
 		newFoodPos := [2]int{rand.Intn(b.rows), rand.Intn(b.cols)}
 		for landOnSnake {
 			if collides(b.snakeState, newFoodPos) {
-				grewThisFrame += snakeIncrement
+				b.grewThisFrame += snakeIncrement
 				err = b.growSnake(snakeIncrement)
 				if err != nil && len(b.snakeState) > 620 {
-					frameUpdateWriter([]byte("You Won!"))
+					b.frameUpdateWriter([]byte("You Won!"))
 					return GameVictory
 				}
 				if err != nil {
 					//fmt.Println("You Died")
-					frameUpdateWriter([]byte("You Died"))
+					b.frameUpdateWriter([]byte("You Died"))
 					return err
 				}
 				newFoodPos = [2]int{rand.Intn(b.rows), rand.Intn(b.cols)}
@@ -310,22 +310,22 @@ func tailDirection(snakeState [][2]int) rune {
 	}
 }
 
-func ReadUserInput() rune {
-	return UserRune
+func (b *Board) ReadUserInput() rune {
+	return b.userRune
 }
 
-func WriteUserInput(input rune) {
-	UserRune = input
+func (b *Board) WriteUserInput(input rune) {
+	b.userRune = input
 }
 
 func SignalGameOver() bool {
 	return true
 }
 
-func frameUpdateWriter(newFrame []byte) {
-	currentFrame = newFrame
+func (b *Board) frameUpdateWriter(newFrame []byte) {
+	b.currentFrame = newFrame
 }
 
-func FrameUpdateReader() []byte {
-	return currentFrame
+func (b *Board) FrameUpdateReader() []byte {
+	return b.currentFrame
 }
