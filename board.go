@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net"
 	"sync"
 	"time"
 )
@@ -45,7 +44,7 @@ type Board struct {
 	currentFrame      []byte
 }
 
-func NewGame(rows, cols int, conn net.Conn) *Board {
+func NewGame(rows, cols int) *Board {
 
 	startingSnake := generateSnake(12, 4)
 
