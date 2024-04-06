@@ -1,19 +1,28 @@
-{{.Title}}
-{{.HTML}}
-{{.SafeHTML}}
-{{.}}
 
-<a title="{{.Title}}">
-<a title="{{.HTML}}">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML 5 Boilerplate</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+  {{.Title}}
+  {{.HTML}}
+  {{.SafeHTML}}
+  {{.}}
 
-<a href="{{.HTML}}">
-<a href="?q={{.HTML}}">
-<a href="{{.Path}}">
-<a href="?q={{.Path}}">
+  <a title="{{.Title}}">
+  <a title="{{.HTML}}">
 
-<!-- Encoding even works on non-string values! -->
-<script>
-  var dog = {{.Dog}};
-  var map = {{.Map}};
-  doWork({{.Title}});
-</script>
+  <a href="{{.HTML}}">
+  <a href="?q={{.HTML}}">
+  <a href="{{.Path}}">
+  <a href="?q={{.Path}}">
+
+  <!-- Encoding even works on non-string values! -->
+	<script src="index.js"></script>
+  </body>
+</html>

@@ -59,7 +59,11 @@ func (b *Board) MoveListener(quit chan bool) error {
 		case <-quit:
 			return GameQuit
 		default:
+
 			char := b.ReadUserInput()
+			if char == '-' {
+				continue
+			}
 			if validMove(char) {
 				b.mu.Lock()
 				b.movement(char)
@@ -77,7 +81,7 @@ func (b *Board) MoveListener(quit chan bool) error {
 	}
 }
 
-func (b *Board) FrameSender(quit chan bool) error {
+func (b *Board) FrameSender(quit chan bool, output chan []byte) error {
 	b.grewThisFrame = snakeIncrement
 	for {
 		select {
@@ -88,10 +92,12 @@ func (b *Board) FrameSender(quit chan bool) error {
 			err := b.updateSnake()
 			if err == GameVictory {
 				quit <- true
+				output <- []byte("You Won")
 				return GameVictory
 
 			}
 			if err != nil {
+				output <- []byte("Game ended")
 				quit <- true
 				return err
 			}
@@ -115,6 +121,7 @@ func (b *Board) FrameSender(quit chan bool) error {
 			}
 
 			b.frameUpdateWriter(buffer.Bytes())
+			output <- b.FrameUpdateReader()
 
 			b.mu.Unlock()
 			time.Sleep(150 * time.Millisecond)
