@@ -1,0 +1,87 @@
+package main
+
+import (
+  "fmt"
+)
+
+templ squares(items [][]rune) {
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+      <title>HTML 5 Boilerplate</title>
+
+    </head>
+    <body>
+    <style type="text/css">
+      
+      body{
+        color: white;
+        background-color: black;
+      }
+    </style>
+      <div class="game-board-js">
+        <div>
+        for i, arr := range items {
+          <div>
+            for j, item := range arr {
+              
+              <button class={ fmt.Sprintf("row%d-col%d", i, j)}>{fmt.Sprintf("%v", item)}</button>
+
+            }
+          </div>
+        }
+        </div>
+      </div>
+      <button id="game-start">Start Game</button>
+      <div class="game-state">
+      </div>
+
+
+    <script type="text/javascript">
+      console.log("First line")
+      const startGame = document.getElementsByClassName('game-start')[0];
+
+      console.log("We loaded")
+
+      document.getElementById('game-start').addEventListener('click', event => {
+
+        if (window['WebSocket']) {
+          const conn = new WebSocket('ws://' + document.location.host + '/ws');
+          console.log("Great success")
+
+          conn.onopen = function () {
+            // Send initial data on WebSocket open
+            conn.send("Initial message");
+            console.log("Hi again")
+          }
+
+          document.addEventListener("keydown", function(event) {
+            var key = event.key;
+            var message = key;
+
+            conn.send(JSON.stringify(message))
+            });
+
+
+          conn.onclose = evt => {
+            console.log("Webosocket connection has been closed")
+            // Document events or actions on WebSocket close
+          };
+
+          conn.onmessage = evt => {
+            console.log("HERE IS THE SERVER MESSAGE")
+            console.log(evt.data)
+            console.log("THAT WAS IT")
+          };
+
+        }
+      });
+    </script>
+    </body>
+  </html>
+
+}
+

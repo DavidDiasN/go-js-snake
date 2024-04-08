@@ -1,48 +1,85 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/DavidDiasN/htmx-snake"
+	"github.com/gorilla/websocket"
 )
+
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 func main() {
 
 	http.HandleFunc("/snake", func(w http.ResponseWriter, r *http.Request) {
+		myBoard := make([][]rune, 25)
+		for i := range myBoard {
+			myBoard[i] = make([]rune, 25)
+		}
+		component := squares(myBoard)
+		component.Render(context.Background(), w)
+		fmt.Println("Done making snake screen")
+
+	})
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Successful websocket connection")
+
+		conn, err := wsUpgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Printf("Problem upgrading connection to webSockets %v\n", err)
+		}
+
+		_, mess, err := conn.ReadMessage()
+
+		conn.WriteJSON("Hello")
+		fmt.Println(mess)
+		connectionBoard := board.NewGame(25, 25)
+
 		quit := make(chan bool)
 		output := make(chan []byte)
-		connectionBoard := board.NewGame(25, 25)
 		// add more channels to catch errors
 		go connectionBoard.FrameSender(quit, output)
-		select {
-		case res := <-output:
-			fmt.Fprint(w, res)
-		}
-		err := connectionBoard.MoveListener(quit)
-		arr := []rune{'d', 's', 'a', 'w', 'd', 's', 'a'}
-		for i := 0; i < 10; i++ {
-			if i < 6 {
-				connectionBoard.WriteUserInput(arr[i])
+		go func() {
+			select {
+			case res := <-output:
+				conn.WriteJSON(res)
 			}
-			time.Sleep(50 * time.Millisecond)
-		}
-		fmt.Println("I am a loser that blocks")
+		}()
+		go func() {
 
-		if err == board.UserClosedGame {
-			fmt.Println("User closed the game")
-		}
+			_, newMessage, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Println("error")
+			} else {
 
+				fmt.Println(newMessage[1])
+			}
+
+			err = connectionBoard.MoveListener(quit)
+
+			if err == board.UserClosedGame {
+				fmt.Println("User closed the game")
+			}
+		}()
+
+		for i := 0; i < 23; i++ {
+		}
+		fmt.Println("Connection terminated")
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 type boardGame struct {
-	snakeBoard board.Board
 	http.Handler
-	template *template.Template
+	template   *template.Template
+	snakeBoard board.Board
 }
