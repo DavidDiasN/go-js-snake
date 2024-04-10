@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
 	"sync"
@@ -32,6 +31,11 @@ var (
 	GameQuit           error = errors.New("Game was quit")
 )
 
+type webConn interface {
+	Write(v any) error
+	Read() (messageType int, p []byte, err error)
+}
+
 type Board struct {
 	rows              int
 	cols              int
@@ -43,10 +47,10 @@ type Board struct {
 	grewThisFrame     int
 	userRune          rune
 	currentFrame      []byte
-	conn              io.ReadWriter
+	conn              webConn
 }
 
-func NewGame(rows, cols int, conn io.ReadWriter) *Board {
+func NewGame(rows, cols int, conn webConn) *Board {
 
 	startingSnake := generateSnake(12, 4)
 
@@ -61,8 +65,7 @@ func (b *Board) MoveListener(quit chan bool) error {
 		case <-quit:
 			return GameQuit
 		default:
-			buffer := []byte{}
-			n, err := b.conn.Read(buffer)
+			n, buffer, err := b.conn.Read()
 			if err != nil {
 				return err
 			}
@@ -117,15 +120,10 @@ func (b *Board) FrameSender(quit chan bool) error {
 				newPieces = append([][2]int{b.food, b.snakeState[0]}, newPieces...)
 				err = encoder.Encode(newPieces)
 				b.grewThisFrame = 0
+				b.conn.Write(newPieces)
 			} else {
-				err = encoder.Encode([][2]int{b.snakeState[0]})
+				b.conn.Write([][2]int{b.snakeState[0]})
 			}
-			if err != nil {
-				fmt.Printf("There was an error encoding boardState: %v\n", err)
-				continue
-			}
-
-			b.conn.Write(buffer.Bytes())
 
 			b.mu.Unlock()
 			time.Sleep(150 * time.Millisecond)

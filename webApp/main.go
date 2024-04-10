@@ -41,13 +41,16 @@ func main() {
 
 		conn.WriteJSON("Hello")
 		fmt.Println(mess)
+
+
+    wrapperConn := 
 		connectionBoard := board.NewGame(25, 25)
 
 		quit := make(chan bool)
 		// Give Frame Sender a wrtier dependency
 		// create a wrapper write function that you can give to FrameSender
 
-		go connectionBoard.FrameSender(quit, output)
+		go connectionBoard.FrameSender(quit)
 
 		go func() {
 			select {
@@ -86,4 +89,16 @@ type boardGame struct {
 	http.Handler
 	template   *template.Template
 	snakeBoard board.Board
+}
+
+type wrapperConn struct {
+  realConn *websocket.Conn  
+}
+
+func (s *simpleConn) Read() {
+  return realConn.ReadMessage(readBuffer)
+}
+
+func (s *simpleConn) Write(data any) {
+
 }
