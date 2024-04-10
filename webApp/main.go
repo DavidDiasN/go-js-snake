@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/DavidDiasN/htmx-snake"
+	board "github.com/DavidDiasN/htmx-snake"
 	"github.com/gorilla/websocket"
 )
 
@@ -42,22 +42,14 @@ func main() {
 		conn.WriteJSON("Hello")
 		fmt.Println(mess)
 
-
-    wrapperConn := 
-		connectionBoard := board.NewGame(25, 25)
+		wrapperConn := wrapperConn{conn}
+		connectionBoard := board.NewGame(25, 25, wrapperConn)
 
 		quit := make(chan bool)
 		// Give Frame Sender a wrtier dependency
 		// create a wrapper write function that you can give to FrameSender
 
 		go connectionBoard.FrameSender(quit)
-
-		go func() {
-			select {
-			case res := <-output:
-				conn.WriteJSON(res)
-			}
-		}()
 
 		go func() {
 
@@ -92,13 +84,13 @@ type boardGame struct {
 }
 
 type wrapperConn struct {
-  realConn *websocket.Conn  
+	realConn *websocket.Conn
 }
 
-func (s *simpleConn) Read() {
-  return realConn.ReadMessage(readBuffer)
+func (w wrapperConn) Read() (messageLen int, message []byte, err error) {
+	return w.realConn.ReadMessage()
 }
 
-func (s *simpleConn) Write(data any) {
-
+func (w wrapperConn) Write(data interface{}) error {
+	return w.realConn.WriteJSON(data)
 }
