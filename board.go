@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"sync"
@@ -42,15 +43,16 @@ type Board struct {
 	grewThisFrame     int
 	userRune          rune
 	currentFrame      []byte
+	conn              io.ReadWriter
 }
 
-func NewGame(rows, cols int) *Board {
+func NewGame(rows, cols int, conn io.ReadWriter) *Board {
 
 	startingSnake := generateSnake(12, 4)
 
 	startingFood := [2]int{0, 5}
 
-	return &Board{rows, cols, startingSnake, sync.Mutex{}, 'w', 'w', startingFood, 0, '-', []byte("")}
+	return &Board{rows, cols, startingSnake, sync.Mutex{}, 'w', 'w', startingFood, 0, '-', []byte(""), conn}
 }
 
 func (b *Board) MoveListener(quit chan bool) error {
@@ -59,9 +61,14 @@ func (b *Board) MoveListener(quit chan bool) error {
 		case <-quit:
 			return GameQuit
 		default:
+			buffer := []byte{}
+			n, err := b.conn.Read(buffer)
+			if err != nil {
+				return err
+			}
+			char := rune(buffer[0])
 
-			char := b.ReadUserInput()
-			if char == '-' {
+			if n <= 0 {
 				continue
 			}
 			if validMove(char) {
@@ -69,8 +76,6 @@ func (b *Board) MoveListener(quit chan bool) error {
 				b.movement(char)
 				b.mu.Unlock()
 			} else if char == 27 {
-				gameEnd := SignalGameOver()
-				fmt.Println(gameEnd)
 				quit <- true
 				return UserClosedGame
 			} else {
@@ -81,7 +86,7 @@ func (b *Board) MoveListener(quit chan bool) error {
 	}
 }
 
-func (b *Board) FrameSender(quit chan bool, output chan []byte) error {
+func (b *Board) FrameSender(quit chan bool) error {
 	b.grewThisFrame = snakeIncrement
 	for {
 		select {
@@ -92,12 +97,12 @@ func (b *Board) FrameSender(quit chan bool, output chan []byte) error {
 			err := b.updateSnake()
 			if err == GameVictory {
 				quit <- true
-				output <- []byte("You Won")
+				b.conn.Write([]byte("You Won"))
 				return GameVictory
 
 			}
 			if err != nil {
-				output <- []byte("Game ended")
+				b.conn.Write([]byte("Game ended"))
 				quit <- true
 				return err
 			}
@@ -120,8 +125,7 @@ func (b *Board) FrameSender(quit chan bool, output chan []byte) error {
 				continue
 			}
 
-			b.frameUpdateWriter(buffer.Bytes())
-			output <- b.FrameUpdateReader()
+			b.conn.Write(buffer.Bytes())
 
 			b.mu.Unlock()
 			time.Sleep(150 * time.Millisecond)
@@ -152,20 +156,20 @@ func (b *Board) updateSnake() error {
 		fmt.Printf("An Illegal move made it into move(): %v", err)
 	} else if err == HitBounds || err == SnakeCollision {
 		//fmt.Println("You Died")
-
-		b.frameUpdateWriter([]byte("You Died"))
+		// need a way to say hey we are done, maybe add the writer and reader to the connection board object?
+		b.conn.Write([]byte("You Died"))
 		return err
 	}
 
 	if PosEqual(b.snakeState[0], b.food) {
 		err = b.growSnake(snakeIncrement)
 		if err != nil && len(b.snakeState) > 620 {
-			b.frameUpdateWriter([]byte("You Won!"))
+			b.conn.Write([]byte("You Won!"))
 			return GameVictory
 		}
 		if err != nil {
 			//fmt.Println("You Died")
-			b.frameUpdateWriter([]byte("You Died"))
+			b.conn.Write([]byte("You Died"))
 			return err
 		}
 		b.grewThisFrame += snakeIncrement
@@ -176,12 +180,12 @@ func (b *Board) updateSnake() error {
 				b.grewThisFrame += snakeIncrement
 				err = b.growSnake(snakeIncrement)
 				if err != nil && len(b.snakeState) > 620 {
-					b.frameUpdateWriter([]byte("You Won!"))
+					b.conn.Write([]byte("You Won!"))
 					return GameVictory
 				}
 				if err != nil {
 					//fmt.Println("You Died")
-					b.frameUpdateWriter([]byte("You Died"))
+					b.conn.Write([]byte("You Died"))
 					return err
 				}
 				newFoodPos = [2]int{rand.Intn(b.rows), rand.Intn(b.cols)}
@@ -314,24 +318,4 @@ func tailDirection(snakeState [][2]int) rune {
 			return 's'
 		}
 	}
-}
-
-func (b *Board) ReadUserInput() rune {
-	return b.userRune
-}
-
-func (b *Board) WriteUserInput(input rune) {
-	b.userRune = input
-}
-
-func SignalGameOver() bool {
-	return true
-}
-
-func (b *Board) frameUpdateWriter(newFrame []byte) {
-	b.currentFrame = newFrame
-}
-
-func (b *Board) FrameUpdateReader() []byte {
-	return b.currentFrame
 }

@@ -44,15 +44,18 @@ func main() {
 		connectionBoard := board.NewGame(25, 25)
 
 		quit := make(chan bool)
-		output := make(chan []byte)
-		// add more channels to catch errors
+		// Give Frame Sender a wrtier dependency
+		// create a wrapper write function that you can give to FrameSender
+
 		go connectionBoard.FrameSender(quit, output)
+
 		go func() {
 			select {
 			case res := <-output:
 				conn.WriteJSON(res)
 			}
 		}()
+
 		go func() {
 
 			_, newMessage, err := conn.ReadMessage()
@@ -62,7 +65,8 @@ func main() {
 
 				fmt.Println(newMessage[1])
 			}
-
+			// Give move listener a reader dependency
+			// create a wrapper read function that you can give to MoveListener
 			err = connectionBoard.MoveListener(quit)
 
 			if err == board.UserClosedGame {
