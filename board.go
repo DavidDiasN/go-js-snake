@@ -32,7 +32,7 @@ var (
 )
 
 type webConn interface {
-	Write(v any) error
+	Write(v interface{}) error
 	Read() (messageType int, p []byte, err error)
 }
 
