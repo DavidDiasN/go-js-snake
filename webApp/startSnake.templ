@@ -26,9 +26,9 @@ templ squares(items [][]rune) {
         <div>
         for i, arr := range items {
           <div>
-            for j, item := range arr {
+            for j := range arr {
               
-              <button class={ fmt.Sprintf("row%d-col%d", i, j)}>{fmt.Sprintf("%v", item)}</button>
+              <button class={ fmt.Sprintf("row%d-col%d", i, j)}>.</button>
 
             }
           </div>
@@ -41,8 +41,9 @@ templ squares(items [][]rune) {
 
 
     <script type="text/javascript">
+
       console.log("First line")
-      const startGame = document.getElementsByClassName('game-start')[0];
+      const startGame = document.getElementsByClassName("game-start")[0];
 
       console.log("We loaded")
 
@@ -50,7 +51,17 @@ templ squares(items [][]rune) {
 
         if (window['WebSocket']) {
           const conn = new WebSocket('ws://' + document.location.host + '/ws');
-          console.log("Great success")
+
+          let clientBoard = [];
+          let foodLocation = [12, 12];
+          let snakeState = [[12, 12]];
+
+          document.getElementsByClassName(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = "X";
+
+          for (i = 0; i < 25; i++) {
+            clientBoard[i] = "." * 25
+          }
+          console.log(clientBoard[0])
 
           conn.onopen = function () {
             // Send initial data on WebSocket open
@@ -59,26 +70,69 @@ templ squares(items [][]rune) {
           }
 
           document.addEventListener("keydown", function(event) {
-            var key = event.key;
-            var message = key;
-
-            conn.send(JSON.stringify(message))
+            conn.send(JSON.stringify(event.key));
             });
 
 
-          conn.onclose = evt => {
+          conn.onclose = ()  => {
             console.log("Websocket connection has been closed")
             // Document events or actions on WebSocket close
           };
 
           conn.onmessage = evt => {
-            console.log("HERE IS THE SERVER MESSAGE")
-            console.log(evt.data)
-            console.log("THAT WAS IT")
+            let data = JSON.parse(evt.data)
+            console.log("Server data: " + data)
+            
+            
+            if (data == null || data == NaN) {
+              console.log("Decode error")
+              return
+            }
+
+            if (data === "You Died") {
+              console.log("\rYou Died");
+              conn.close();
+              return;
+            }
+
+            if (data.length > 2) {
+              clientBoard[foodLocation[0]][foodLocation[1]] = 'X'
+              document.getElementsByClassName(`row${foodLocation[0]}-col${foodLocation[1]}`).innerText = "X";
+              clientBoard[data[0][0]][data[0][1]] = 'O'
+              document.getElementsByClassName(`row${data[0][0]}-col${data[0][1]}`).innerText = "O";
+              foodLocation = data[0]
+
+              let l = snakeState.length - 1
+              clientBoard[snakeState[l][0]][snakeState[l][1]] = '.'
+              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = ".";
+
+              snakeState = snakeState.unshift(data[1])
+              //				fmt.Printf("Second Check length = %d\n", l+1)
+              snakeState = snakeState.push(data.slice(2, data.length))
+              //				console.log("Third Check length = " + (l+1))
+              clientBoard[snakeState[0][0]][snakeState[0][1]] = 'X'
+              document.getElementsByClassName(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = "X";
+
+              for (i = 2; i < data.length; i++) {
+                clientBoard[data[i][0]][data[i][1]] = 'X'
+                document.getElementsByClassName(`row${data[i][0]}-col${data[i][1]}`).innerText = "X";
+              }
+
+            } else 
+              let l = snakeState.length - 1
+              clientBoard[snakeState[l][0]][snakeState[l][1]] = ".";
+              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = ".";
+              snakeState = snakeState.unshift(data[0]);
+
+              clientBoard[snakeState[0][0]][snakeState[0][1]] = "X"
+              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = "X";
+
+            }
           };
 
         }
       });
+
     </script>
     </body>
   </html>

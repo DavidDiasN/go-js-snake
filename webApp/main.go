@@ -39,7 +39,6 @@ func main() {
 
 		_, mess, err := conn.ReadMessage()
 
-		conn.WriteJSON("Hello")
 		fmt.Println(mess)
 
 		wrapperConn := wrapperConn{conn}

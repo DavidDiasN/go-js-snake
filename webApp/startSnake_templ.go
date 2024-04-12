@@ -36,7 +36,7 @@ func squares(items [][]rune) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for j, item := range arr {
+			for j := range arr {
 				var templ_7745c5c3_Var2 = []any{fmt.Sprintf("row%d-col%d", i, j)}
 				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 				if templ_7745c5c3_Err != nil {
@@ -55,20 +55,7 @@ func squares(items [][]rune) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", item))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `startSnake.templ`, Line: 31, Col: 88}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">.</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -78,7 +65,7 @@ func squares(items [][]rune) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\">Start Game</button><div class=\"game-state\"></div><script type=\"text/javascript\">\n      console.log(\"First line\")\n      const startGame = document.getElementsByClassName('game-start')[0];\n\n      console.log(\"We loaded\")\n\n      document.getElementById('game-start').addEventListener('click', event => {\n\n        if (window['WebSocket']) {\n          const conn = new WebSocket('ws://' + document.location.host + '/ws');\n          console.log(\"Great success\")\n\n          conn.onopen = function () {\n            // Send initial data on WebSocket open\n            conn.send(\"Initial message\");\n            console.log(\"Hi again\")\n          }\n\n          document.addEventListener(\"keydown\", function(event) {\n            var key = event.key;\n            var message = key;\n\n            conn.send(JSON.stringify(message))\n            });\n\n\n          conn.onclose = evt => {\n            console.log(\"Webosocket connection has been closed\")\n            // Document events or actions on WebSocket close\n          };\n\n          conn.onmessage = evt => {\n            console.log(\"HERE IS THE SERVER MESSAGE\")\n            console.log(evt.data)\n            console.log(\"THAT WAS IT\")\n          };\n\n        }\n      });\n    </script></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\">Start Game</button><div class=\"game-state\"></div><script type=\"text/javascript\">\n\n      console.log(\"First line\")\n      const startGame = document.getElementsByClassName(\"game-start\")[0];\n\n      console.log(\"We loaded\")\n\n      document.getElementById('game-start').addEventListener('click', event => {\n\n        if (window['WebSocket']) {\n          const conn = new WebSocket('ws://' + document.location.host + '/ws');\n\n          let clientBoard = [];\n          let foodLocation = [12, 12];\n          let snakeState = [[12, 12]];\n\n          document.getElementsByClassName(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = \"X\";\n\n          for (i = 0; i < 25; i++) {\n            clientBoard[i] = \".\" * 25\n          }\n          console.log(clientBoard[0])\n\n          conn.onopen = function () {\n            // Send initial data on WebSocket open\n            conn.send(\"Initial message\");\n            console.log(\"Hi again\")\n          }\n\n          document.addEventListener(\"keydown\", function(event) {\n            conn.send(JSON.stringify(event.key));\n            });\n\n\n          conn.onclose = ()  => {\n            console.log(\"Websocket connection has been closed\")\n            // Document events or actions on WebSocket close\n          };\n\n          conn.onmessage = evt => {\n            let data = JSON.parse(evt.data)\n            console.log(\"Server data: \" + data)\n            \n            \n            if (data == null || data == NaN) {\n              console.log(\"Decode error\")\n              return\n            }\n\n            if (data === \"You Died\") {\n              console.log(\"\\rYou Died\");\n              conn.close();\n              return;\n            }\n\n            if (data.length > 2) {\n              clientBoard[foodLocation[0]][foodLocation[1]] = 'X'\n              document.getElementsByClassName(`row${foodLocation[0]}-col${foodLocation[1]}`).innerText = \"X\";\n              clientBoard[data[0][0]][data[0][1]] = 'O'\n              document.getElementsByClassName(`row${data[0][0]}-col${data[0][1]}`).innerText = \"O\";\n              foodLocation = data[0]\n\n              let l = snakeState.length - 1\n              clientBoard[snakeState[l][0]][snakeState[l][1]] = '.'\n              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = \".\";\n\n              snakeState.unshift(data[1])\n              //\t\t\t\tfmt.Printf(\"Second Check length = %d\\n\", l+1)\n              snakeState.push(data.slice(2, data.length))\n              //\t\t\t\tconsole.log(\"Third Check length = \" + (l+1))\n              clientBoard[snakeState[0][0]][snakeState[0][1]] = 'X'\n              document.getElementsByClassName(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = \"X\";\n\n              for (i = 2; i < data.length; i++) {\n                clientBoard[data[i][0]][data[i][1]] = 'X'\n                document.getElementsByClassName(`row${data[i][0]}-col${data[i][1]}`).innerText = \"X\";\n              }\n\n            } else {\n              let l = snakeState.length - 1\n              clientBoard[snakeState[l][0]][snakeState[l][1]] = \".\";\n              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = \".\";\n              snakeState.unshift(data[0]);\n\n              clientBoard[snakeState[0][0]][snakeState[0][1]] = \"X\"\n              document.getElementsByClassName(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = \"X\";\n\n            }\n          };\n\n        }\n      });\n\n    </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

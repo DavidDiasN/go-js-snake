@@ -101,12 +101,12 @@ func (b *Board) FrameSender(quit chan bool) error {
 			err := b.updateSnake()
 			if err == GameVictory {
 				quit <- true
-				b.conn.Write([]byte("You Won"))
+				b.conn.Write("You Won")
 				return GameVictory
 
 			}
 			if err != nil {
-				b.conn.Write([]byte("Game ended"))
+				b.conn.Write("Game ended")
 				quit <- true
 				return err
 			}
@@ -156,19 +156,19 @@ func (b *Board) updateSnake() error {
 	} else if err == HitBounds || err == SnakeCollision {
 		//fmt.Println("You Died")
 		// need a way to say hey we are done, maybe add the writer and reader to the connection board object?
-		b.conn.Write([]byte("You Died"))
+		b.conn.Write("You Died")
 		return err
 	}
 
 	if PosEqual(b.snakeState[0], b.food) {
 		err = b.growSnake(snakeIncrement)
 		if err != nil && len(b.snakeState) > 620 {
-			b.conn.Write([]byte("You Won!"))
+			b.conn.Write("You Won!")
 			return GameVictory
 		}
 		if err != nil {
 			//fmt.Println("You Died")
-			b.conn.Write([]byte("You Died"))
+			b.conn.Write("You Died")
 			return err
 		}
 		b.grewThisFrame += snakeIncrement
@@ -179,12 +179,12 @@ func (b *Board) updateSnake() error {
 				b.grewThisFrame += snakeIncrement
 				err = b.growSnake(snakeIncrement)
 				if err != nil && len(b.snakeState) > 620 {
-					b.conn.Write([]byte("You Won!"))
+					b.conn.Write("You Won!")
 					return GameVictory
 				}
 				if err != nil {
 					//fmt.Println("You Died")
-					b.conn.Write([]byte("You Died"))
+					b.conn.Write("You Died")
 					return err
 				}
 				newFoodPos = [2]int{rand.Intn(b.rows), rand.Intn(b.cols)}
