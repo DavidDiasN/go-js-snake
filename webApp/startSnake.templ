@@ -22,22 +22,38 @@ templ squares(items [][]rune) {
         background-color: black;
       }
       
-      .fixed-inline-div {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
+      .game-container-css {
+        display: inline-grid;
+        grid-template-columns: repeat(25, 20px);
+        grid-template-rows: repeat(25, 20px);
+        padding: 5px;
+        row-gap: 3px;
+        column-gap: 3px;
+        border: solid;
       }
-    </style>
-      <div class="game-board-js">
-        <div>
-        for i, arr := range items {
-          <div>
-            for j := range arr {
-              
-              <div class="fixed-inline-div" id={ fmt.Sprintf("row%d-col%d", i, j)}>.</div>
+      .fixed-inline-div {
+        background-color:white;
+        display: inline-block;
+        border-left: 5px;
+        border-right: 5px;
+        border: none;
+        width: 100%;
+        height: 100%;
+      }
+      .snake-block {
+        background-color: red;
+      }
+      .food-block {
+        background-color: green;
+      }
 
+    </style>
+      <div class="game-board-js" >
+        <div class="game-container-css">
+        for i, arr := range items {
+            for j := range arr {
+              <div class="fixed-inline-div" id={ fmt.Sprintf("row%d-col%d", i, j)}></div>
             }
-          </div>
         }
         </div>
       </div>
@@ -89,8 +105,8 @@ templ squares(items [][]rune) {
         let foodLocation = [12, 12];
         let snakeState = [];
         snakeState.push([12,12])
-
-        document.getElementById(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = "X";
+        let rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
+        document.getElementById(rowcol).classList.add('snake-block')
 
         conn.onopen = function () {
           // Send initial data on WebSocket open
@@ -124,12 +140,16 @@ templ squares(items [][]rune) {
 
           if (data.length > 2) {
             
-            document.getElementById(`row${foodLocation[0]}-col${foodLocation[1]}`).innerText = "X";
-            document.getElementById(`row${data[0][0]}-col${data[0][1]}`).innerText = "O";
+            rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` 
+            document.getElementById(rowcol).classList.remove('food-block')
+            rowcol = `row${data[0][0]}-col${data[0][1]}` 
+            document.getElementById(rowcol).classList.add('food-block');
+
             foodLocation = data[0]
 
             let l = snakeState.length - 1
-            document.getElementById(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = ".";
+            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` 
+            document.getElementById(rowcol).classList.remove("snake-block");
 
             snakeState = removeLast(snakeState);
 
@@ -138,10 +158,12 @@ templ squares(items [][]rune) {
             snakeState = append(snakeState, sliceArray(data, 2, data.length))
 
             
-            document.getElementById(`row${snakeState[0][0]}-col${snakeState[0][1]}`).innerText = "X";
+            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
+            document.getElementById(rowcol).classList.add("snake-block");
 
             for (i = 2; i < data.length; i++) {
-              document.getElementById(`row${data[i][0]}-col${data[i][1]}`).innerText = "X";
+              rowcol = `row${data[i][0]}-col${data[i][1]}` 
+              document.getElementById(rowcol).classList.add("snake-block");
             }
 
           } else  {
@@ -149,12 +171,14 @@ templ squares(items [][]rune) {
 
             let l = snakeState.length - 1;
 
-            document.getElementById(`row${snakeState[l][0]}-col${snakeState[l][1]}`).innerText = ".";
+            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` 
+            document.getElementById(rowcol).classList.remove("snake-block");
             snakeState = sliceArray(snakeState, 0, l-1)
 
             snakeState = prepend(snakeState, data[0])
 
-            document.getElementById("row" + snakeState[0][0] + "-col" + snakeState[0][1]).innerText = "X";
+            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
+            document.getElementById(rowcol).classList.add("snake-block");
 
           }
         };
