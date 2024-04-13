@@ -37,10 +37,6 @@ func main() {
 			log.Printf("Problem upgrading connection to webSockets %v\n", err)
 		}
 
-		_, mess, err := conn.ReadMessage()
-
-		fmt.Println(mess)
-
 		wrapperConn := wrapperConn{conn}
 		connectionBoard := board.NewGame(25, 25, wrapperConn)
 
@@ -52,15 +48,6 @@ func main() {
 
 		go func() {
 
-			_, newMessage, err := conn.ReadMessage()
-			if err != nil {
-				fmt.Println("error")
-			} else {
-
-				fmt.Println(newMessage[1])
-			}
-			// Give move listener a reader dependency
-			// create a wrapper read function that you can give to MoveListener
 			err = connectionBoard.MoveListener(quit)
 
 			if err == board.UserClosedGame {

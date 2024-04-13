@@ -70,7 +70,6 @@ func (b *Board) MoveListener(quit chan bool) error {
 				return err
 			}
 			char := rune(buffer[1])
-			fmt.Println(string(char))
 
 			if n <= 0 {
 				continue
