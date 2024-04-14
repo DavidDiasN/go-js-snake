@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	board "github.com/DavidDiasN/htmx-snake"
 	"github.com/gorilla/websocket"
@@ -19,11 +20,7 @@ var wsUpgrader = websocket.Upgrader{
 func main() {
 
 	http.HandleFunc("/snake", func(w http.ResponseWriter, r *http.Request) {
-		myBoard := make([][]rune, 25)
-		for i := range myBoard {
-			myBoard[i] = make([]rune, 25)
-		}
-		component := squares(myBoard)
+		component := squares(25)
 		component.Render(context.Background(), w)
 		fmt.Println("Done making snake screen")
 
@@ -60,6 +57,58 @@ func main() {
 		fmt.Println("Connection terminated")
 	})
 
+	http.HandleFunc("/scripts/snake.js", func(w http.ResponseWriter, r *http.Request) {
+		file, err := os.Open("scripts/snake.js")
+
+		if err != nil {
+			fmt.Println("open error")
+			panic(err)
+		}
+
+		info, err := file.Stat()
+
+		if err != nil {
+			fmt.Println("stat error")
+			panic(err)
+		}
+		data := make([]byte, info.Size())
+		_, err = file.Read(data)
+		if err != nil {
+			fmt.Println("Read error")
+			panic(err)
+		}
+
+		w.Header().Add("Content-Type", "text/javascript")
+		w.Write(data)
+
+	})
+
+	http.HandleFunc("/styles/snake.css", func(w http.ResponseWriter, r *http.Request) {
+
+		file, err := os.Open("styles/snake.css")
+
+		if err != nil {
+			fmt.Println("open error")
+			panic(err)
+		}
+
+		info, err := file.Stat()
+
+		if err != nil {
+			fmt.Println("stat error")
+			panic(err)
+		}
+		data := make([]byte, info.Size())
+		_, err = file.Read(data)
+		if err != nil {
+			fmt.Println("Read error")
+			panic(err)
+		}
+
+		w.Header().Add("Content-Type", "text/css")
+		w.Write(data)
+	})
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -80,3 +129,17 @@ func (w wrapperConn) Read() (messageLen int, message []byte, err error) {
 func (w wrapperConn) Write(data interface{}) error {
 	return w.realConn.WriteJSON(data)
 }
+
+/*
+func FixMimeTypes() {
+	err1 := mime.AddExtensionType(".js", "text/javascript")
+	if err1 != nil {
+		log.Printf("Error in mime js %s", err1.Error())
+	}
+
+	err2 := mime.AddExtensionType(".css", "text/css")
+	if err2 != nil {
+		log.Printf("Error in mime js %s", err2.Error())
+	}
+}
+*/

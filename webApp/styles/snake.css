@@ -1,0 +1,29 @@
+body{
+  color: white;
+  background-color: black;
+}
+
+.game-container-css {
+  display: inline-grid;
+  grid-template-columns: repeat(25, 20px);
+  grid-template-rows: repeat(25, 20px);
+  padding: 5px;
+  row-gap: 3px;
+  column-gap: 3px;
+  border: solid;
+}
+.fixed-inline-div {
+  background-color:white;
+  display: inline-block;
+  border-left: 5px;
+  border-right: 5px;
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+.snake-block {
+  background-color: red;
+}
+.food-block {
+  background-color: green;
+}

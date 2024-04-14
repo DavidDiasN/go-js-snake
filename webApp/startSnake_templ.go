@@ -14,7 +14,7 @@ import (
 	"fmt"
 )
 
-func squares(items [][]rune) templ.Component {
+func squares(dimensions int) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -27,12 +27,12 @@ func squares(items [][]rune) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><title>HTML 5 Boilerplate</title></head><body><style type=\"text/css\">\n      \n      body{\n        color: white;\n        background-color: black;\n      }\n      \n      .game-container-css {\n        display: inline-grid;\n        grid-template-columns: repeat(25, 20px);\n        grid-template-rows: repeat(25, 20px);\n        padding: 5px;\n        row-gap: 3px;\n        column-gap: 3px;\n        border: solid;\n      }\n      .fixed-inline-div {\n        background-color:white;\n        display: inline-block;\n        border-left: 5px;\n        border-right: 5px;\n        border: none;\n        width: 100%;\n        height: 100%;\n      }\n      .snake-block {\n        background-color: red;\n      }\n      .food-block {\n        background-color: green;\n      }\n\n    </style><div class=\"game-board-js\"><div class=\"game-container-css\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><title>HTML 5 Boilerplate</title><link rel=\"stylesheet\" href=\"styles/snake.css\"></head><body><div class=\"game-board-js\"><div class=\"game-container-css\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for i, arr := range items {
-			for j := range arr {
+		for i := 0; i < dimensions; i++ {
+			for j := 0; j < dimensions; j++ {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"fixed-inline-div\" id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -40,7 +40,7 @@ func squares(items [][]rune) templ.Component {
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("row%d-col%d", i, j))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `startSnake.templ`, Line: 55, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `startSnake.templ`, Line: 22, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -52,7 +52,7 @@ func squares(items [][]rune) templ.Component {
 				}
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\">Start Game</button><div class=\"game-state\"></div><script type=\"text/javascript\">\n\n      function removeFirst(arr) {\n          return arr.map((subArray, index) => index > 0 ? subArray : null).filter(Boolean);\n      }\n\n      function removeLast(arr) {\n          let l = arr.length - 1\n          return arr.filter((_, index) => index != l);\n      }\n\n      // Function to prepend an element to an array\n      function prepend(arr, element) {\n          return [[...element], ...arr];\n      }\n\n      // Function to append an element to an array\n      function append(arr, element) {\n          const newArr = [...arr];\n          \n          if (Array.isArray(element) && element.length > 2) {\n              element.forEach(item => newArr.push(item));\n          } else {\n              newArr.push(element);\n          }\n          \n          return newArr;\n      }\n      function sliceArray(arr, start, end) {\n        return arr.filter((_, index) => index >= start && index <= end)\n      }\n\n      const startGame = document.getElementsByClassName(\"game-start\")[0];\n\n      document.getElementById('game-start').addEventListener('click', event => {\n\n      if (window['WebSocket']) {\n        const conn = new WebSocket('ws://' + document.location.host + '/ws');\n\n\n        let foodLocation = [12, 12];\n        let snakeState = [];\n        snakeState.push([12,12])\n        let rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` \n        document.getElementById(rowcol).classList.add('snake-block')\n\n        conn.onopen = function () {\n          // Send initial data on WebSocket open\n          conn.send(\"Initial message\");\n        }\n\n        document.addEventListener(\"keydown\", function(event) {\n          conn.send(JSON.stringify(event.key));\n          });\n\n\n        conn.onclose = ()  => {\n          console.log(\"Websocket connection has been closed\")\n          // Document events or actions on WebSocket close\n        };\n\n        conn.onmessage = evt => {\n          let data = JSON.parse(evt.data);\n          \n          \n          if (data == null || data == NaN) {\n            console.log(\"Decode error\")\n            return\n          }\n\n          if (data === \"You Died\") {\n            console.log(\"\\rYou Died\");\n            conn.close();\n            return;\n          }\n\n          if (data.length > 2) {\n            \n            rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` \n            document.getElementById(rowcol).classList.remove('food-block')\n            rowcol = `row${data[0][0]}-col${data[0][1]}` \n            document.getElementById(rowcol).classList.add('food-block');\n\n            foodLocation = data[0]\n\n            let l = snakeState.length - 1\n            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` \n            document.getElementById(rowcol).classList.remove(\"snake-block\");\n\n            snakeState = removeLast(snakeState);\n\n            snakeState = prepend(snakeState, data[1]);\n\n            snakeState = append(snakeState, sliceArray(data, 2, data.length))\n\n            \n            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` \n            document.getElementById(rowcol).classList.add(\"snake-block\");\n\n            for (i = 2; i < data.length; i++) {\n              rowcol = `row${data[i][0]}-col${data[i][1]}` \n              document.getElementById(rowcol).classList.add(\"snake-block\");\n            }\n\n          } else  {\n\n\n            let l = snakeState.length - 1;\n\n            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` \n            document.getElementById(rowcol).classList.remove(\"snake-block\");\n            snakeState = sliceArray(snakeState, 0, l-1)\n\n            snakeState = prepend(snakeState, data[0])\n\n            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` \n            document.getElementById(rowcol).classList.add(\"snake-block\");\n\n          }\n        };\n\n      }\n    });\n\n    </script></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\">Start Game</button><div id=\"score-display\"></div><script src=\"scripts/snake.js\">\n      </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -4,7 +4,7 @@ import (
   "fmt"
 )
 
-templ squares(items [][]rune) {
+templ squares(dimensions int) {
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -12,183 +12,25 @@ templ squares(items [][]rune) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
       <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
       <title>HTML 5 Boilerplate</title>
-
+      <link rel="stylesheet" href="styles/snake.css"></link>
     </head>
     <body>
-    <style type="text/css">
-      
-      body{
-        color: white;
-        background-color: black;
-      }
-      
-      .game-container-css {
-        display: inline-grid;
-        grid-template-columns: repeat(25, 20px);
-        grid-template-rows: repeat(25, 20px);
-        padding: 5px;
-        row-gap: 3px;
-        column-gap: 3px;
-        border: solid;
-      }
-      .fixed-inline-div {
-        background-color:white;
-        display: inline-block;
-        border-left: 5px;
-        border-right: 5px;
-        border: none;
-        width: 100%;
-        height: 100%;
-      }
-      .snake-block {
-        background-color: red;
-      }
-      .food-block {
-        background-color: green;
-      }
-
-    </style>
       <div class="game-board-js" >
         <div class="game-container-css">
-        for i, arr := range items {
-            for j := range arr {
-              <div class="fixed-inline-div" id={ fmt.Sprintf("row%d-col%d", i, j)}></div>
-            }
-        }
+          for i := 0; i < dimensions; i++ {
+              for j := 0; j < dimensions; j++ {
+                <div class="fixed-inline-div" id={ fmt.Sprintf("row%d-col%d", i, j)}></div>
+              }
+          }
         </div>
       </div>
+
       <button id="game-start">Start Game</button>
-      <div class="game-state">
-      </div>
+      <div id="score-display"></div>
 
 
-    <script type="text/javascript">
-
-      function removeFirst(arr) {
-          return arr.map((subArray, index) => index > 0 ? subArray : null).filter(Boolean);
-      }
-
-      function removeLast(arr) {
-          let l = arr.length - 1
-          return arr.filter((_, index) => index != l);
-      }
-
-      // Function to prepend an element to an array
-      function prepend(arr, element) {
-          return [[...element], ...arr];
-      }
-
-      // Function to append an element to an array
-      function append(arr, element) {
-          const newArr = [...arr];
-          
-          if (Array.isArray(element) && element.length > 2) {
-              element.forEach(item => newArr.push(item));
-          } else {
-              newArr.push(element);
-          }
-          
-          return newArr;
-      }
-      function sliceArray(arr, start, end) {
-        return arr.filter((_, index) => index >= start && index <= end)
-      }
-
-      const startGame = document.getElementsByClassName("game-start")[0];
-
-      document.getElementById('game-start').addEventListener('click', event => {
-
-      if (window['WebSocket']) {
-        const conn = new WebSocket('ws://' + document.location.host + '/ws');
-
-
-        let foodLocation = [12, 12];
-        let snakeState = [];
-        snakeState.push([12,12])
-        let rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
-        document.getElementById(rowcol).classList.add('snake-block')
-
-        conn.onopen = function () {
-          // Send initial data on WebSocket open
-          conn.send("Initial message");
-        }
-
-        document.addEventListener("keydown", function(event) {
-          conn.send(JSON.stringify(event.key));
-          });
-
-
-        conn.onclose = ()  => {
-          console.log("Websocket connection has been closed")
-          // Document events or actions on WebSocket close
-        };
-
-        conn.onmessage = evt => {
-          let data = JSON.parse(evt.data);
-          
-          
-          if (data == null || data == NaN) {
-            console.log("Decode error")
-            return
-          }
-
-          if (data === "You Died") {
-            console.log("\rYou Died");
-            conn.close();
-            return;
-          }
-
-          if (data.length > 2) {
-            
-            rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` 
-            document.getElementById(rowcol).classList.remove('food-block')
-            rowcol = `row${data[0][0]}-col${data[0][1]}` 
-            document.getElementById(rowcol).classList.add('food-block');
-
-            foodLocation = data[0]
-
-            let l = snakeState.length - 1
-            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` 
-            document.getElementById(rowcol).classList.remove("snake-block");
-
-            snakeState = removeLast(snakeState);
-
-            snakeState = prepend(snakeState, data[1]);
-
-            snakeState = append(snakeState, sliceArray(data, 2, data.length))
-
-            
-            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
-            document.getElementById(rowcol).classList.add("snake-block");
-
-            for (i = 2; i < data.length; i++) {
-              rowcol = `row${data[i][0]}-col${data[i][1]}` 
-              document.getElementById(rowcol).classList.add("snake-block");
-            }
-
-          } else  {
-
-
-            let l = snakeState.length - 1;
-
-            rowcol = `row${snakeState[l][0]}-col${snakeState[l][1]}` 
-            document.getElementById(rowcol).classList.remove("snake-block");
-            snakeState = sliceArray(snakeState, 0, l-1)
-
-            snakeState = prepend(snakeState, data[0])
-
-            rowcol = `row${snakeState[0][0]}-col${snakeState[0][1]}` 
-            document.getElementById(rowcol).classList.add("snake-block");
-
-          }
-        };
-
-      }
-    });
-
-    </script>
+      <script src="scripts/snake.js">
+      </script>
     </body>
   </html>
-
 }
-
