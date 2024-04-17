@@ -38,8 +38,6 @@ func main() {
 		connectionBoard := board.NewGame(25, 25, wrapperConn)
 
 		quit := make(chan bool)
-		// Give Frame Sender a wrtier dependency
-		// create a wrapper write function that you can give to FrameSender
 
 		go connectionBoard.FrameSender(quit)
 
@@ -51,10 +49,6 @@ func main() {
 				fmt.Println("User closed the game")
 			}
 		}()
-
-		for i := 0; i < 23; i++ {
-		}
-		fmt.Println("Connection terminated")
 	})
 
 	http.HandleFunc("/scripts/snake.js", func(w http.ResponseWriter, r *http.Request) {
@@ -129,17 +123,3 @@ func (w wrapperConn) Read() (messageLen int, message []byte, err error) {
 func (w wrapperConn) Write(data interface{}) error {
 	return w.realConn.WriteJSON(data)
 }
-
-/*
-func FixMimeTypes() {
-	err1 := mime.AddExtensionType(".js", "text/javascript")
-	if err1 != nil {
-		log.Printf("Error in mime js %s", err1.Error())
-	}
-
-	err2 := mime.AddExtensionType(".css", "text/css")
-	if err2 != nil {
-		log.Printf("Error in mime js %s", err2.Error())
-	}
-}
-*/
