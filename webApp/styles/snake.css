@@ -7,7 +7,7 @@ body{
   display: inline-grid;
   grid-template-columns: repeat(25, 20px);
   grid-template-rows: repeat(25, 20px);
-  padding: 5px;
+  padding: 15px;
   row-gap: 3px;
   column-gap: 3px;
   border: solid;
@@ -26,4 +26,34 @@ body{
 }
 .food-block {
   background-color: green;
+}
+
+.invisible {
+  opacity: 0%;
+  height: 0px;
+  width: 0px;
+}
+
+.gso-css{
+  display: inline-grid;
+  grid-template-rows: 100px 100px;
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  width: 600px;
+  height: 600px;
+  opacity: 50%;
+  background-color: black;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gso-message{
+  color: white;
+  font-size: 50px;
+}
+.gso-score{
+  color: white;
+  font-size: 50px;
+  justify-content: center;
 }

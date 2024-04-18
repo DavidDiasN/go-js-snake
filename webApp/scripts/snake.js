@@ -33,6 +33,10 @@ const startGame = document.getElementById("game-start");
 startGame.addEventListener('click', _ => {
 
   if (window['WebSocket']) {
+
+    let gameStatusOverlay = document.getElementById("game-status-overlay")
+    gameStatusOverlay.classList.add("invisible")
+    gameStatusOverlay.classList.remove("gso-css")
     const conn = new WebSocket('ws://' + document.location.host + '/ws');
     let score = 0;
     startGame.innerText = "Restart Game"
@@ -69,7 +73,16 @@ startGame.addEventListener('click', _ => {
       }
 
       if (data === "You Died") {
+        // make most of this a function so that you don't
+        // repeat between this and the code for win 
+        
         console.log("\rYou Died");
+
+        startGame.removeAttribute('disabled');
+        document.getElementById("score-display").innerText = "Score: " + 0;
+        gameStatusOverlay.classList.remove("invisible")
+        gameStatusOverlay.classList.add("gso-css")
+        document.getElementById("gso-score").innerText = "Score: " + score;
         
         rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` 
         document.getElementById(rowcol).classList.remove('food-block')
@@ -79,8 +92,6 @@ startGame.addEventListener('click', _ => {
           document.getElementById(rowcol).classList.remove("snake-block");
         }
 
-        startGame.removeAttribute('disabled');
-        document.getElementById("score-display").innerText = "Score: " + 0;
         conn.close();
       }
 
