@@ -27,7 +27,7 @@ func squares(dimensions int) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><title>HTML 5 Boilerplate</title><link rel=\"stylesheet\" href=\"styles/snake.css\"></head><body><div id=\"game-status-overlay\" class=\"invisible\"><div class=\"gso-message\">You Might have won again</div><div class=\"gso-score\">Score: 0</div></div><div class=\"game-board-js\"><div class=\"game-container-css\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><title>HTML 5 Boilerplate</title><link rel=\"stylesheet\" href=\"styles/snake.css\"></head><body><div id=\"game-status-overlay\" class=\"invisible\"><div id=\"gso-message-js\" class=\"gso-message\">You Might have won again</div><div id=\"gso-score-js\" class=\"gso-score\">Score: 0</div></div><div class=\"game-board-js\"><div class=\"game-container-css\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,7 +52,7 @@ func squares(dimensions int) templ.Component {
 				}
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\">Start Game</button><div id=\"score-display\"></div><script src=\"scripts/snake.js\">\n      </script></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div><button id=\"game-start\" class=\"gs-button-css\">Start Game</button><div id=\"score-display\"></div><script src=\"scripts/snake.js\">\n      </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

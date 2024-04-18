@@ -37,6 +37,7 @@ startGame.addEventListener('click', _ => {
     let gameStatusOverlay = document.getElementById("game-status-overlay")
     gameStatusOverlay.classList.add("invisible")
     gameStatusOverlay.classList.remove("gso-css")
+    
     const conn = new WebSocket('ws://' + document.location.host + '/ws');
     let score = 0;
     startGame.innerText = "Restart Game"
@@ -82,7 +83,8 @@ startGame.addEventListener('click', _ => {
         document.getElementById("score-display").innerText = "Score: " + 0;
         gameStatusOverlay.classList.remove("invisible")
         gameStatusOverlay.classList.add("gso-css")
-        document.getElementById("gso-score").innerText = "Score: " + score;
+        document.getElementById("gso-message-js").innerText = "You Died";
+        document.getElementById("gso-score-js").innerText = "Score: " + score;
         
         rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` 
         document.getElementById(rowcol).classList.remove('food-block')
@@ -93,6 +95,7 @@ startGame.addEventListener('click', _ => {
         }
 
         conn.close();
+        return;
       }
 
 
@@ -111,6 +114,7 @@ startGame.addEventListener('click', _ => {
 
         document.getElementById("score-display").innerText = "Score: " + 0;
         conn.close();
+        return;
       }
 
       if (data.length > 2) {

@@ -16,10 +16,10 @@ templ squares(dimensions int) {
     </head>
     <body>
      <div id="game-status-overlay" class="invisible">
-      <div class="gso-message">
+      <div id="gso-message-js" class="gso-message">
         You Might have won again
       </div>
-      <div class="gso-score">
+      <div id="gso-score-js" class="gso-score">
         Score: 0
       </div>
      </div>
@@ -33,7 +33,7 @@ templ squares(dimensions int) {
         </div>
       </div>
 
-      <button id="game-start">Start Game</button>
+      <button id="game-start" class="gs-button-css">Start Game</button>
       <div id="score-display"></div>
 
       
