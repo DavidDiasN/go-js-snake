@@ -80,8 +80,26 @@ startGame.addEventListener('click', _ => {
         }
 
         startGame.removeAttribute('disabled');
+        document.getElementById("score-display").innerText = "Score: " + 0;
         conn.close();
-        return;
+      }
+
+
+      if (data === "You Win") {
+        console.log("\rYou Win");
+        
+        rowcol = `row${foodLocation[0]}-col${foodLocation[1]}` 
+        document.getElementById(rowcol).classList.remove('food-block')
+
+        for (i = 0; i < snakeState.length; i++) {
+          rowcol = `row${snakeState[i][0]}-col${snakeState[i][1]}` 
+          document.getElementById(rowcol).classList.remove("snake-block");
+        }
+
+        startGame.removeAttribute('disabled');
+
+        document.getElementById("score-display").innerText = "Score: " + 0;
+        conn.close();
       }
 
       if (data.length > 2) {
@@ -134,4 +152,5 @@ startGame.addEventListener('click', _ => {
 
   }
 });
+
 

@@ -15,6 +15,14 @@ templ squares(dimensions int) {
       <link rel="stylesheet" href="styles/snake.css"></link>
     </head>
     <body>
+     <div id="game-status-overlay" class="gso-css">
+      <div gso-message>
+        You Might have won
+      </div>
+      <div gso-score>
+        Score: 0
+      </div>
+     </div>
       <div class="game-board-js" >
         <div class="game-container-css">
           for i := 0; i < dimensions; i++ {
@@ -28,6 +36,7 @@ templ squares(dimensions int) {
       <button id="game-start">Start Game</button>
       <div id="score-display"></div>
 
+      
 
       <script src="scripts/snake.js">
       </script>

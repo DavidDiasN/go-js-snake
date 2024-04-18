@@ -54,6 +54,7 @@ func main() {
 				fmt.Println("User closed the game")
 			}
 		}()
+
 	})
 
 	http.HandleFunc("/scripts/snake.js", func(w http.ResponseWriter, r *http.Request) {
