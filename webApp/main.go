@@ -19,6 +19,11 @@ var wsUpgrader = websocket.Upgrader{
 
 func main() {
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		component := mainPage()
+		component.Render(context.Background(), w)
+	})
+
 	http.HandleFunc("/snake", func(w http.ResponseWriter, r *http.Request) {
 		component := squares(25)
 		component.Render(context.Background(), w)
@@ -102,6 +107,60 @@ func main() {
 		w.Header().Add("Content-Type", "text/css")
 		w.Write(data)
 	})
+
+	http.HandleFunc("/styles/main.css", func(w http.ResponseWriter, r *http.Request) {
+
+		file, err := os.Open("styles/main.css")
+
+		if err != nil {
+			fmt.Println("open error")
+			panic(err)
+		}
+
+		info, err := file.Stat()
+
+		if err != nil {
+			fmt.Println("stat error")
+			panic(err)
+		}
+		data := make([]byte, info.Size())
+		_, err = file.Read(data)
+		if err != nil {
+			fmt.Println("Read error")
+			panic(err)
+		}
+
+		http.HandleFunc("/assets/resume.pdf", func(w http.ResponseWriter, r *http.Request) {
+
+			file, err := os.Open("/assets/resume.pdf")
+
+			if err != nil {
+				fmt.Println("open error")
+				panic(err)
+			}
+
+			info, err := file.Stat()
+
+			if err != nil {
+				fmt.Println("stat error")
+				panic(err)
+			}
+			data := make([]byte, info.Size())
+			_, err = file.Read(data)
+			if err != nil {
+				fmt.Println("Read error")
+				panic(err)
+			}
+
+			w.Header().Add("Content-Type", "application/pdf")
+			w.Write(data)
+		})
+
+		w.Header().Add("Content-Type", "text/css")
+		w.Write(data)
+	})
+
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -55,7 +55,7 @@ startGame.addEventListener('click', _ => {
 
 
     conn.onclose = ()  => {
-      console.log("Websocket connection has been closed")
+      document.getElementById("score-display").innerText = "Score: " + 0;
       // Document events or actions on WebSocket close
     };
 
